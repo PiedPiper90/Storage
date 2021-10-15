@@ -3,6 +3,7 @@ package nettyServer.handler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import nettyServer.model.UserRequest;
+import nettyServer.util.Request;
 import nettyServer.util.Response;
 
 import java.io.RandomAccessFile;
@@ -27,8 +28,7 @@ public class FileHandler extends SimpleChannelInboundHandler<UserRequest> {
             response.setCommand("/getlist");
             response.setFilename(list.toString());
             channelHandlerContext.writeAndFlush(response);
-        }
-        if (s.getRequest().getCommand().equals("/download")) {
+        } else if (s.getRequest().getCommand().equals("/download")) {
             String filename = this.path + s.getUser().getId() + "\\" + s.getRequest().getFilename();
             Path downloadFile = Paths.get(filename);
             if (Files.exists(downloadFile)) {
@@ -39,7 +39,7 @@ public class FileHandler extends SimpleChannelInboundHandler<UserRequest> {
                         response.setFilename(s.getRequest().getFilename());
                         response.setPosition(accessFile.getFilePointer());
                         int read = accessFile.read(buffer);
-                        response.setCommand("/upload");
+                        response.setCommand("/download");
                         if (read < buffer.length - 1) {
                             byte[] tempBuffer = new byte[read];
                             System.arraycopy(buffer, 0, tempBuffer, 0, read);
@@ -57,6 +57,12 @@ public class FileHandler extends SimpleChannelInboundHandler<UserRequest> {
                 Response response = new Response();
                 response.setCommand("/fne");
                 channelHandlerContext.writeAndFlush(response);
+            }
+        } else if(s.getRequest().getCommand().equals("/upload")){
+            Request msg = s.getRequest();
+            try (RandomAccessFile accessFile = new RandomAccessFile("D:\\storage\\" +s.getUser().getId()+"\\"+ msg.getFilename(), "rw")) {
+                accessFile.seek(msg.getPosition());
+                accessFile.write(msg.getFile());
             }
         }
     }

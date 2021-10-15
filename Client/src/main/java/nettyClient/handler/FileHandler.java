@@ -13,12 +13,13 @@ public class FileHandler extends SimpleChannelInboundHandler<Response> {
             System.out.println("File not exist");
         } else if (msg.getCommand().equals("/getlist")) {
             System.out.println(msg.getFilename());
-        } else if(msg.getCommand().equals("/upload")) {
+        } else if (msg.getCommand().equals("/download")) {
             try (RandomAccessFile accessFile = new RandomAccessFile("D:\\client\\" + msg.getFilename(), "rw")) {
                 accessFile.seek(msg.getPosition());
                 accessFile.write(msg.getFile());
             }
         }
+
     }
 
     @Override
