@@ -10,9 +10,6 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.codec.bytes.ByteArrayDecoder;
 import io.netty.handler.codec.bytes.ByteArrayEncoder;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
-import nettyClient.handler.FileHandler;
 import nettyClient.handler.JsonDecoder;
 import nettyClient.handler.JsonEncoder;
 import nettyClient.handler.LoginHandler;
@@ -61,11 +58,21 @@ public class Client {
             System.out.println("Client started");
             System.out.println("Please authorize");
             while (true) {
-                String cmd = scanner.nextLine();
+                String cmd = scanner.nextLine().trim();
+                while (cmd.contains("  ")) {
+                    cmd = cmd.replaceAll("  ", " ");
+                }
                 if (cmd.equals("/exit"))
                     break;
                 Request request = new Request();
-                if (cmd.startsWith("/download")) {
+                if (cmd.startsWith("/log")) {
+                    request.setCommand(cmd);
+                } else if (cmd.startsWith("/list")) {
+                    request.setCommand(cmd);
+                } else if(cmd.startsWith("/delete")) {
+                    request.setFilename(cmd.split(" ",2)[1]);
+                    request.setCommand("/delete");
+                } else if (cmd.startsWith("/download")) {
                     request.setFilename(cmd.split(" ", 2)[1]);
                     request.setCommand("/download");
                 } else if (cmd.startsWith("/upload")) {
@@ -97,9 +104,13 @@ public class Client {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+                    } else {
+                        System.out.println("File not exist");
+                        continue;
                     }
                 } else {
-                    request.setCommand(cmd);
+                    System.out.println("Unknown command " + cmd);
+                    continue;
                 }
                 future.channel().writeAndFlush(request);
             }

@@ -6,6 +6,7 @@ import nettyServer.model.UserRequest;
 import nettyServer.util.Request;
 import nettyServer.util.Response;
 
+import java.io.File;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,6 +35,10 @@ public class FileHandler extends SimpleChannelInboundHandler<UserRequest> {
             if (Files.exists(downloadFile)) {
                 byte[] buffer = new byte[1024 * 512];
                 try (RandomAccessFile accessFile = new RandomAccessFile(filename, "r")) {
+                    Response response1 = new Response();
+                    response1.setFilename(s.getRequest().getFilename());
+                    response1.setCommand("/ff");
+                    channelHandlerContext.writeAndFlush(response1);
                     while (true) {
                         Response response = new Response();
                         response.setFilename(s.getRequest().getFilename());
@@ -52,18 +57,24 @@ public class FileHandler extends SimpleChannelInboundHandler<UserRequest> {
                         }
                         buffer = new byte[1024 * 512];
                     }
+                    Response response = new Response();
+                    response.setCommand("/dc");
+                    channelHandlerContext.writeAndFlush(response);
                 }
             } else {
                 Response response = new Response();
                 response.setCommand("/fne");
                 channelHandlerContext.writeAndFlush(response);
             }
-        } else if(s.getRequest().getCommand().equals("/upload")){
+        } else if (s.getRequest().getCommand().equals("/upload")) {
             Request msg = s.getRequest();
-            try (RandomAccessFile accessFile = new RandomAccessFile("D:\\storage\\" +s.getUser().getId()+"\\"+ msg.getFilename(), "rw")) {
+            try (RandomAccessFile accessFile = new RandomAccessFile("D:\\storage\\" + s.getUser().getId() + "\\" + msg.getFilename(), "rw")) {
                 accessFile.seek(msg.getPosition());
                 accessFile.write(msg.getFile());
             }
+        } else if (s.getRequest().getCommand().equals("/delete")) {
+            File file = new File("D:\\storage\\" + s.getUser().getId() + "\\" + s.getRequest().getFilename());
+            file.delete();
         }
     }
 

@@ -4,6 +4,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import nettyClient.util.Response;
 
+import java.io.File;
 import java.io.RandomAccessFile;
 
 public class FileHandler extends SimpleChannelInboundHandler<Response> {
@@ -18,8 +19,12 @@ public class FileHandler extends SimpleChannelInboundHandler<Response> {
                 accessFile.seek(msg.getPosition());
                 accessFile.write(msg.getFile());
             }
+        }else if(msg.getCommand().equals("/dc")){
+            System.out.println("Download complete");
+        }else if(msg.getCommand().equals("/ff")){
+            File file= new File("D:\\client\\" + msg.getFilename());
+            file.delete();
         }
-
     }
 
     @Override
